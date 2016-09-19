@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<title>GoChat</title>
+<link rel="stylesheet" href="/styles.css"/>
+<link href="https://cdn.joexn.io/legacy.css" rel="stylesheet">
+<div class="container">
+	<h1>GoChat</h1>
+	<h2>Log in to begin</h2>
+	<form id="login-form">
+		<label for="nickname">Nickname</label>
+		<input id="nickname" name="nickname" type="text" placeholder="Dr. Cool" />
+		<div id="login-form-submit" class="btn dark" type="submit">Log in</div>
+	</form>
+	<div id="messageboard"></div>
+	<div id="chatbox-container" class="hidden">
+		<input id="chatbox" placeholder="Hows it going?">
+		<button id="chatbutton">Send</button>
+	</div>
+</div>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script type="text/javascript" src="/scripts.js"></script>

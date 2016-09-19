@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/hagbarth/GoChat/app/chat"
 	"net/http"
 )
@@ -22,17 +21,6 @@ func respondJSON(object interface{}, w http.ResponseWriter) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
-}
-
-/**
-* Returns the frontend webapp
-**/
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, `<!DOCTYPE html>
-		<title>GoChat</title>
-		<link rel="stylesheet" href="/static/styles.css"/>
-		<h1>GoChat</h1>
-		<script type="text/javascript" src="/static/scripts.js"></script>`)
 }
 
 /**
@@ -83,7 +71,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	messageBoard = chat.NewMessageBoard()
-	http.HandleFunc("/", handler)
+	http.Handle("/", http.FileServer(http.Dir("../static")))
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/messages", handleMessages)
 	http.ListenAndServe(":8000", nil)
