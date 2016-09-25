@@ -1,6 +1,17 @@
+var globalState = {}
 $(function () {
+  // Setup websocket
+  var ws = new WebSocket('ws://localhost:8000/socketserver')
+  ws.onmessage = function (e) {
+    var messages = JSON.parse(e.data)
+    updateState(globalState, {
+      messages: messages
+    })
+  }
+
   function updateState (state, added) {
-    render($.extend(true, state, added))
+    globalState = $.extend(state, added)
+    render(globalState)
   }
 
   function bindAction (fn, type) {
@@ -33,18 +44,19 @@ $(function () {
     }, 'POST')
   }, 'user')
 
-  var sendMessage = bindAction(function(state, user, message) {
-    return callApi('/messages', {
+  var sendMessage = function(state, user, message) {
+    ws.send(JSON.stringify({
       Uid: user.ID,
       message: message
-    }, 'POST')
-  }, 'messages')
+    }))
+  }
 
   var getMessages = bindAction(function(state) {
     return callApi('/messages')
   }, 'messages')
-  
+
   function render(state) {
+    console.log(Object.assign({}, state))
     var $loginForm = $('#login-form')
     var $loginFormSubmit = $('#login-form-submit')
     var $chatboxContainer = $('#chatbox-container')
@@ -56,11 +68,13 @@ $(function () {
     * Handle UI
     **/
     if (state.user) {
-      $loginForm.addClass('hidden')
-      $chatboxContainer.removeClass('hidden')
+      $loginForm.hide()
+      $messageboard.show()
+      $chatboxContainer.show()
     } else {
-      $loginForm.removeClass('hidden')
-      $chatboxContainer.addClass('hidden')
+      $loginForm.show()
+      $chatboxContainer.hide()
+      $messageboard.hide()
     }
 
     if (state.messages) {

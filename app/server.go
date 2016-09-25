@@ -1,12 +1,19 @@
 package main
 
 import (
+  "log"
   "encoding/json"
-  "github.com/hagbarth/GoChat/app/chat"
   "net/http"
+  "github.com/gorilla/websocket"
+  "github.com/hagbarth/GoChat/app/chat"
 )
 
 var messageBoard chat.MessageBoard
+var upgrader = websocket.Upgrader{
+  ReadBufferSize:  1024,
+  WriteBufferSize: 1024,
+}
+var connections []*websocket.Conn
 
 /**
 * Responds with a JSON string from the obejct provided
@@ -69,8 +76,30 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
   respondJSON(messageBoard.Messages, w)
 }
 
+/**
+* Websocket server
+**/
+func socketHandler(w http.ResponseWriter, r *http.Request) {
+    conn, err := upgrader.Upgrade(w, r, nil)
+    if err != nil {
+        log.Println(err)
+        return
+    }
+    connections = append(connections, conn)
+    for {
+      var m chat.MessageRequest
+      conn.ReadJSON(&m)
+      messages := messageBoard.AddMessage(m.Uid, m.Message)
+      for _, connection := range connections {
+        connection.WriteJSON(messages)
+      }
+    }
+}
+
 func main() {
+  connections = make([]*websocket.Conn, 0)
   messageBoard = chat.NewMessageBoard()
+  http.HandleFunc("/socketserver", socketHandler)
   http.Handle("/", http.FileServer(http.Dir("../static")))
   http.HandleFunc("/login", handleLogin)
   http.HandleFunc("/messages", handleMessages)

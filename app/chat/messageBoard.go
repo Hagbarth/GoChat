@@ -18,7 +18,7 @@ func (m *MessageBoard) AddUser(u User) User {
 func (m *MessageBoard) AddMessage(uid string, mes string) []Message {
   userUuid, err := uuid.FromString(uid)
   if err != nil {
-    panic("User id conversion error")
+    panic(err)
   }
   message := Message{
     ID:        uuid.NewV4(),
