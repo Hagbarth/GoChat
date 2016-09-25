@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
   "log"
@@ -80,27 +80,27 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 * Websocket server
 **/
 func socketHandler(w http.ResponseWriter, r *http.Request) {
-    conn, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-        log.Println(err)
-        return
+  conn, err := upgrader.Upgrade(w, r, nil)
+  if err != nil {
+    log.Println(err)
+    return
+  }
+  connections = append(connections, conn)
+  for {
+    var m chat.MessageRequest
+    conn.ReadJSON(&m)
+    messages := messageBoard.AddMessage(m.Uid, m.Message)
+    for _, connection := range connections {
+      connection.WriteJSON(messages)
     }
-    connections = append(connections, conn)
-    for {
-      var m chat.MessageRequest
-      conn.ReadJSON(&m)
-      messages := messageBoard.AddMessage(m.Uid, m.Message)
-      for _, connection := range connections {
-        connection.WriteJSON(messages)
-      }
-    }
+  }
 }
 
-func main() {
+func Serve () {
   connections = make([]*websocket.Conn, 0)
   messageBoard = chat.NewMessageBoard()
   http.HandleFunc("/socketserver", socketHandler)
-  http.Handle("/", http.FileServer(http.Dir("../static")))
+  http.Handle("/", http.FileServer(http.Dir("static")))
   http.HandleFunc("/login", handleLogin)
   http.HandleFunc("/messages", handleMessages)
   http.ListenAndServe(":8000", nil)
